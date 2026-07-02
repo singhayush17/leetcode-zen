@@ -237,67 +237,59 @@
       "discuss", "solution",
     ]);
 
-    // 1. Hide by FontAwesome icon classes used by the tab icons
-    //    Solutions = fa-flask, Editorial = fa-book-open
-    const iconSelectors = [
-      ".fa-flask",       // Solutions tab icon
-      ".fa-book-open",   // Editorial tab icon
-    ];
-    for (const sel of iconSelectors) {
-      const icons = document.querySelectorAll(sel);
-      for (const icon of icons) {
-        // Walk up to hide the entire tab (icon container + text sibling)
-        let tab = icon;
-        for (let i = 0; i < 5; i++) {
-          if (!tab.parentElement) break;
-          tab = tab.parentElement;
-          // We've reached the tab wrapper when it contains both an SVG and text
-          const hasIcon = tab.querySelector("svg");
-          const textContent = tab.textContent?.trim().toLowerCase() || "";
-          const isTab = [...HIDDEN_TABS].some(t => textContent === t || textContent.startsWith(t));
-          if (hasIcon && isTab) {
-            tab.style.setProperty("display", "none", "important");
-            tab.dataset.zenHidden = "1";
-            break;
-          }
+    // Helper: given any element inside a tab, hide the outermost tab wrapper
+    function hideTabWrapper(el) {
+      // Best case: walk up to the flexlayout tab button wrapper
+      const wrapper = el.closest(".flexlayout__tab_button");
+      if (wrapper && !wrapper.dataset.zenHidden) {
+        wrapper.style.setProperty("display", "none", "important");
+        wrapper.dataset.zenHidden = "1";
+        return;
+      }
+      // Fallback: walk up a few levels to find a container with an SVG
+      let parent = el.parentElement;
+      for (let i = 0; i < 6; i++) {
+        if (!parent) break;
+        if (parent.classList.contains("flexlayout__tab_button")) {
+          parent.style.setProperty("display", "none", "important");
+          parent.dataset.zenHidden = "1";
+          return;
         }
-        // Fallback: at minimum hide the icon's container div
-        const iconContainer = icon.closest("div");
-        if (iconContainer && !iconContainer.dataset.zenHidden) {
-          iconContainer.style.setProperty("display", "none", "important");
-          iconContainer.dataset.zenHidden = "1";
-        }
+        parent = parent.parentElement;
+      }
+      // Last resort: just hide the element itself
+      el.style.setProperty("display", "none", "important");
+      el.dataset.zenHidden = "1";
+    }
+
+    // 1. By FontAwesome icon classes
+    const icons = document.querySelectorAll(".fa-flask, .fa-book-open");
+    for (const icon of icons) {
+      hideTabWrapper(icon);
+    }
+
+    // 2. By tab element IDs
+    const tabIds = ["#solutions_tab", "#editorial_tab", "#discuss_tab", "#discussion_tab"];
+    for (const id of tabIds) {
+      const el = document.querySelector(id);
+      if (el && !el.dataset.zenHidden) {
+        hideTabWrapper(el);
       }
     }
 
-    // 2. By visible text content — hide text AND walk up to parent tab
+    // 3. By visible text content
     const tabElements = document.querySelectorAll(
       'a, div[role="tab"], button, span[role="tab"], div.whitespace-nowrap, div.font-medium'
     );
     for (const el of tabElements) {
       if (el.dataset.zenHidden) continue;
       const text = el.textContent?.trim().toLowerCase();
-      if (!HIDDEN_TABS.has(text)) continue;
-
-      // Hide the text element itself
-      el.style.setProperty("display", "none", "important");
-      el.dataset.zenHidden = "1";
-
-      // Walk up to hide the parent tab wrapper (contains icon + text)
-      let parent = el.parentElement;
-      for (let i = 0; i < 4; i++) {
-        if (!parent) break;
-        const hasSvg = parent.querySelector("svg");
-        if (hasSvg) {
-          parent.style.setProperty("display", "none", "important");
-          parent.dataset.zenHidden = "1";
-          break;
-        }
-        parent = parent.parentElement;
+      if (HIDDEN_TABS.has(text)) {
+        hideTabWrapper(el);
       }
     }
 
-    // 3. By href — catches anchor-based tabs
+    // 4. By href
     const linkSelectors = [
       'a[href*="/solutions"]',
       'a[href*="/discuss"]',
@@ -307,8 +299,7 @@
       const links = document.querySelectorAll(sel);
       for (const link of links) {
         if (link.dataset.zenHidden) continue;
-        link.style.setProperty("display", "none", "important");
-        link.dataset.zenHidden = "1";
+        hideTabWrapper(link);
       }
     }
   }

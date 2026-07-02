@@ -98,17 +98,17 @@ html.leetcode-zen-active [data-cy="editorial-tab"] {
   display: none !important;
 }
 
-/* By FontAwesome icon class (Solutions = flask, Editorial = book-open) */
-html.leetcode-zen-active .fa-flask,
-html.leetcode-zen-active .fa-book-open {
+/* By tab ID — hide the outermost flexlayout tab button wrapper */
+html.leetcode-zen-active .flexlayout__tab_button:has(#solutions_tab),
+html.leetcode-zen-active .flexlayout__tab_button:has(#editorial_tab),
+html.leetcode-zen-active .flexlayout__tab_button:has(#discuss_tab),
+html.leetcode-zen-active .flexlayout__tab_button:has(#discussion_tab) {
   display: none !important;
 }
 
-/* Hide the parent container wrapping icon + tab text */
-html.leetcode-zen-active div:has(> div > .fa-flask),
-html.leetcode-zen-active div:has(> div > .fa-book-open),
-html.leetcode-zen-active div:has(> .fa-flask),
-html.leetcode-zen-active div:has(> .fa-book-open) {
+/* By FontAwesome icon — hide the outermost flexlayout tab button wrapper */
+html.leetcode-zen-active .flexlayout__tab_button:has(.fa-flask),
+html.leetcode-zen-active .flexlayout__tab_button:has(.fa-book-open) {
   display: none !important;
 }
 
