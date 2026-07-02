@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeetCode Zen Mode</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <div class="logo">☯</div>
+      <h1>Zen Mode</h1>
+      <p class="subtitle">Distraction-free LeetCode</p>
+    </div>
+
+    <div class="toggle-row">
+      <span class="toggle-label" id="statusText">Active</span>
+      <label class="switch">
+        <input type="checkbox" id="zenToggle" checked />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="divider"></div>
+
+    <ul class="feature-list">
+      <li>🚫 Question numbers hidden</li>
+      <li>🚫 Difficulty labels hidden</li>
+      <li>🚫 Discussion &amp; solutions hidden</li>
+      <li>🚫 Hints &amp; companies hidden</li>
+      <li>🚫 Stats &amp; acceptance rate hidden</li>
+      <li>🚫 Failing test case details hidden</li>
+      <li>✅ Problem description visible</li>
+      <li>✅ Code editor visible</li>
+      <li>✅ Submission history visible</li>
+    </ul>
+
+    <div class="footer">
+      <p>Focus on solving, not judging.</p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

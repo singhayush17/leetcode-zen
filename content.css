@@ -1,0 +1,133 @@
+/*
+ * LeetCode Zen Mode — Content Styles
+ * Scoped under body.leetcode-zen-active for instant toggling.
+ * Selectors derived from actual LeetCode page source (Next.js + Tailwind).
+ */
+
+/* ============================================================
+   0. QUESTION NUMBER ("1970." prefix in titles, lists, contests)
+   ============================================================ */
+body.leetcode-zen-active [data-cy="question-frontend-id"],
+body.leetcode-zen-active [class*="question-id"],
+body.leetcode-zen-active .question-frontend-id {
+  display: none !important;
+}
+
+/* ============================================================
+   1. DIFFICULTY BADGE  (Easy / Medium / Hard colored pill)
+   LeetCode uses classes like text-difficulty-easy, etc.
+   ============================================================ */
+body.leetcode-zen-active [class*="text-difficulty-easy"],
+body.leetcode-zen-active [class*="text-difficulty-medium"],
+body.leetcode-zen-active [class*="text-difficulty-hard"],
+body.leetcode-zen-active [diff],
+body.leetcode-zen-active [data-cy="question-difficulty"] {
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+}
+
+/* ============================================================
+   2. LIKES / DISLIKES thumbs
+   ============================================================ */
+body.leetcode-zen-active [data-icon="thumbs-up"],
+body.leetcode-zen-active [data-icon="thumbs-down"],
+body.leetcode-zen-active button[aria-label="like"],
+body.leetcode-zen-active button[aria-label="dislike"] {
+  display: none !important;
+}
+
+/* Hide the likes/dislikes container row */
+body.leetcode-zen-active .flexlayout__tab > div > div > div:has([data-icon="thumbs-up"]),
+body.leetcode-zen-active div:has(> button[aria-label="like"]) {
+  display: none !important;
+}
+
+/* ============================================================
+   3. TOPIC TAGS (Array, Binary Search, DFS, BFS, Union-Find…)
+   These link to /tag/<slug>/ paths
+   ============================================================ */
+body.leetcode-zen-active a[href*="/tag/"],
+body.leetcode-zen-active div:has(> a[href*="/tag/"]),
+body.leetcode-zen-active [data-cy="topic-tags"] {
+  display: none !important;
+}
+
+/* ============================================================
+   4. COMPANY TAGS
+   ============================================================ */
+body.leetcode-zen-active [data-cy="company-tags"] {
+  display: none !important;
+}
+
+/* ============================================================
+   5. HINTS (accordion buttons labeled "Hint 1", "Hint 2"…)
+   ============================================================ */
+body.leetcode-zen-active [data-cy="hints-section"] {
+  display: none !important;
+}
+
+/* ============================================================
+   6. SOLUTIONS / DISCUSSION / EDITORIAL tabs
+   LeetCode tab hrefs: /problems/<slug>/solutions,
+                        /problems/<slug>/discuss,
+                        /problems/<slug>/editorial
+   ============================================================ */
+body.leetcode-zen-active a[href*="/solutions"],
+body.leetcode-zen-active a[href*="/discuss"],
+body.leetcode-zen-active a[href*="/editorial"],
+body.leetcode-zen-active [data-cy="solutions-tab"],
+body.leetcode-zen-active [data-cy="discuss-tab"],
+body.leetcode-zen-active [data-cy="editorial-tab"] {
+  display: none !important;
+}
+
+/* ============================================================
+   7. SIMILAR QUESTIONS section
+   ============================================================ */
+body.leetcode-zen-active div:has(> div > a[href*="/problems/"]):has([class*="text-difficulty-"]) {
+  display: none !important;
+}
+
+/* ============================================================
+   8. FAILING TEST CASE DETAILS
+   After Run Code / Submit, hide Input/Output/Expected/Stdout
+   so user only sees "Wrong Answer" + X/Y passed, not WHICH.
+   ============================================================ */
+body.leetcode-zen-active [data-e2e-locator="console-testcase-result"],
+body.leetcode-zen-active [data-e2e-locator="console-result"] {
+  display: none !important;
+}
+
+/* ============================================================
+   9. STATS on problem list pages (acceptance rate column etc.)
+   ============================================================ */
+body.leetcode-zen-active [data-cy="ac-rate"],
+body.leetcode-zen-active [data-cy="question-ac-rate"] {
+  visibility: hidden !important;
+}
+
+/* ============================================================
+   ZEN BADGE — floating indicator so user knows zen mode is on
+   ============================================================ */
+body.leetcode-zen-active .zen-mode-indicator {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 99999;
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.35);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
