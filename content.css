@@ -9,9 +9,9 @@
 /* ============================================================
    0. QUESTION NUMBER ("1970." prefix in titles, lists, contests)
    ============================================================ */
-html.leetcode-zen-active [data-cy="question-frontend-id"],
-html.leetcode-zen-active [class*="question-id"],
-html.leetcode-zen-active .question-frontend-id {
+html.leetcode-zen-active.zen-hide-question-numbers [data-cy="question-frontend-id"],
+html.leetcode-zen-active.zen-hide-question-numbers [class*="question-id"],
+html.leetcode-zen-active.zen-hide-question-numbers .question-frontend-id {
   display: none !important;
 }
 
@@ -19,11 +19,11 @@ html.leetcode-zen-active .question-frontend-id {
    1. DIFFICULTY BADGE  (Easy / Medium / Hard colored pill)
    LeetCode uses classes like text-difficulty-easy, etc.
    ============================================================ */
-html.leetcode-zen-active [class*="text-difficulty-easy"],
-html.leetcode-zen-active [class*="text-difficulty-medium"],
-html.leetcode-zen-active [class*="text-difficulty-hard"],
-html.leetcode-zen-active [diff],
-html.leetcode-zen-active [data-cy="question-difficulty"] {
+html.leetcode-zen-active.zen-hide-difficulty [class*="text-difficulty-easy"],
+html.leetcode-zen-active.zen-hide-difficulty [class*="text-difficulty-medium"],
+html.leetcode-zen-active.zen-hide-difficulty [class*="text-difficulty-hard"],
+html.leetcode-zen-active.zen-hide-difficulty [diff],
+html.leetcode-zen-active.zen-hide-difficulty [data-cy="question-difficulty"] {
   display: none !important;
 }
 
@@ -33,24 +33,24 @@ html.leetcode-zen-active [data-cy="question-difficulty"] {
    ============================================================ */
 
 /* Individual icons */
-html.leetcode-zen-active [data-icon="thumbs-up"],
-html.leetcode-zen-active [data-icon="thumbs-down"],
-html.leetcode-zen-active [data-icon="comment"],
-html.leetcode-zen-active [data-icon="share"],
-html.leetcode-zen-active button[aria-label="like"],
-html.leetcode-zen-active button[aria-label="dislike"] {
+html.leetcode-zen-active.zen-hide-likes [data-icon="thumbs-up"],
+html.leetcode-zen-active.zen-hide-likes [data-icon="thumbs-down"],
+html.leetcode-zen-active.zen-hide-likes [data-icon="comment"],
+html.leetcode-zen-active.zen-hide-likes [data-icon="share"],
+html.leetcode-zen-active.zen-hide-likes button[aria-label="like"],
+html.leetcode-zen-active.zen-hide-likes button[aria-label="dislike"] {
   display: none !important;
 }
 
 /* Walk up: hide the parent flex row containing like/dislike/comment buttons */
-html.leetcode-zen-active div:has(> div > [data-icon="thumbs-up"]),
-html.leetcode-zen-active div:has(> [data-icon="thumbs-up"]),
-html.leetcode-zen-active div:has(> button[aria-label="like"]) {
+html.leetcode-zen-active.zen-hide-likes div:has(> div > [data-icon="thumbs-up"]),
+html.leetcode-zen-active.zen-hide-likes div:has(> [data-icon="thumbs-up"]),
+html.leetcode-zen-active.zen-hide-likes div:has(> button[aria-label="like"]) {
   display: none !important;
 }
 
 /* The entire action bar — a flex row that contains multiple icon-buttons */
-html.leetcode-zen-active div.flex:has([data-icon="thumbs-up"]):has([data-icon="thumbs-down"]) {
+html.leetcode-zen-active.zen-hide-likes div.flex:has([data-icon="thumbs-up"]):has([data-icon="thumbs-down"]) {
   display: none !important;
 }
 
@@ -58,23 +58,23 @@ html.leetcode-zen-active div.flex:has([data-icon="thumbs-up"]):has([data-icon="t
    3. TOPIC TAGS (Array, Binary Search, DFS, BFS, Union-Find…)
    These link to /tag/<slug>/ paths
    ============================================================ */
-html.leetcode-zen-active a[href*="/tag/"],
-html.leetcode-zen-active div:has(> a[href*="/tag/"]),
-html.leetcode-zen-active [data-cy="topic-tags"] {
+html.leetcode-zen-active.zen-hide-tags-companies a[href*="/tag/"],
+html.leetcode-zen-active.zen-hide-tags-companies div:has(> a[href*="/tag/"]),
+html.leetcode-zen-active.zen-hide-tags-companies [data-cy="topic-tags"] {
   display: none !important;
 }
 
 /* ============================================================
    4. COMPANY TAGS
    ============================================================ */
-html.leetcode-zen-active [data-cy="company-tags"] {
+html.leetcode-zen-active.zen-hide-tags-companies [data-cy="company-tags"] {
   display: none !important;
 }
 
 /* ============================================================
    5. HINTS (accordion buttons labeled "Hint 1", "Hint 2"…)
    ============================================================ */
-html.leetcode-zen-active [data-cy="hints-section"] {
+html.leetcode-zen-active.zen-hide-hints [data-cy="hints-section"] {
   display: none !important;
 }
 
@@ -85,37 +85,37 @@ html.leetcode-zen-active [data-cy="hints-section"] {
    ============================================================ */
 
 /* By href */
-html.leetcode-zen-active a[href*="/solutions"],
-html.leetcode-zen-active a[href*="/discuss"],
-html.leetcode-zen-active a[href*="/editorial"] {
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs a[href*="/solutions"],
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs a[href*="/discuss"],
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs a[href*="/editorial"] {
   display: none !important;
 }
 
 /* By data-cy attribute */
-html.leetcode-zen-active [data-cy="solutions-tab"],
-html.leetcode-zen-active [data-cy="discuss-tab"],
-html.leetcode-zen-active [data-cy="editorial-tab"] {
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs [data-cy="solutions-tab"],
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs [data-cy="discuss-tab"],
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs [data-cy="editorial-tab"] {
   display: none !important;
 }
 
 /* By tab ID — hide the outermost flexlayout tab button wrapper */
-html.leetcode-zen-active .flexlayout__tab_button:has(#solutions_tab),
-html.leetcode-zen-active .flexlayout__tab_button:has(#editorial_tab),
-html.leetcode-zen-active .flexlayout__tab_button:has(#discuss_tab),
-html.leetcode-zen-active .flexlayout__tab_button:has(#discussion_tab) {
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs .flexlayout__tab_button:has(#solutions_tab),
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs .flexlayout__tab_button:has(#editorial_tab),
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs .flexlayout__tab_button:has(#discuss_tab),
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs .flexlayout__tab_button:has(#discussion_tab) {
   display: none !important;
 }
 
 /* By FontAwesome icon — hide the outermost flexlayout tab button wrapper */
-html.leetcode-zen-active .flexlayout__tab_button:has(.fa-flask),
-html.leetcode-zen-active .flexlayout__tab_button:has(.fa-book-open) {
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs .flexlayout__tab_button:has(.fa-flask),
+html.leetcode-zen-active.zen-problem-page.zen-hide-discussion-tabs .flexlayout__tab_button:has(.fa-book-open) {
   display: none !important;
 }
 
 /* ============================================================
    7. SIMILAR QUESTIONS section
    ============================================================ */
-html.leetcode-zen-active div:has(> div > a[href*="/problems/"]):has([class*="text-difficulty-"]) {
+html.leetcode-zen-active.zen-hide-similar-questions div:has(> div > a[href*="/problems/"]):has([class*="text-difficulty-"]) {
   display: none !important;
 }
 
@@ -124,17 +124,17 @@ html.leetcode-zen-active div:has(> div > a[href*="/problems/"]):has([class*="tex
    After Run Code / Submit, hide Input/Output/Expected/Stdout
    so user only sees "Wrong Answer" + X/Y passed, not WHICH.
    ============================================================ */
-html.leetcode-zen-active [data-e2e-locator="console-testcase-result"],
-html.leetcode-zen-active [data-e2e-locator="console-testcase-tab"],
-html.leetcode-zen-active [data-e2e-locator="console-testcase-list"] {
+html.leetcode-zen-active.zen-hide-failing-tests [data-e2e-locator="console-testcase-result"],
+html.leetcode-zen-active.zen-hide-failing-tests [data-e2e-locator="console-testcase-tab"],
+html.leetcode-zen-active.zen-hide-failing-tests [data-e2e-locator="console-testcase-list"] {
   display: none !important;
 }
 
 /* ============================================================
    9. STATS on problem list pages (acceptance rate column etc.)
    ============================================================ */
-html.leetcode-zen-active [data-cy="ac-rate"],
-html.leetcode-zen-active [data-cy="question-ac-rate"] {
+html.leetcode-zen-active.zen-hide-stats [data-cy="ac-rate"],
+html.leetcode-zen-active.zen-hide-stats [data-cy="question-ac-rate"] {
   visibility: hidden !important;
 }
 

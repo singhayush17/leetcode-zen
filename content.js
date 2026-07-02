@@ -30,71 +30,149 @@
   "use strict";
 
   const STORAGE_KEY = "leetcodeZenEnabled";
+  const SETTINGS_KEY = "leetcodeZenSettings";
+  const BASE_HIDE_SETTINGS = {
+    questionNumbers: true,
+    difficulty: true,
+    discussionTabs: true,
+    hints: true,
+    tagsCompanies: true,
+    stats: true,
+    likes: true,
+    similarQuestions: true,
+    failingTests: true,
+  };
+  const DEFAULT_SETTINGS = {
+    useContestOverrides: false,
+    regular: { ...BASE_HIDE_SETTINGS },
+    contest: { ...BASE_HIDE_SETTINGS },
+  };
+  const ROOT_CLASS = "leetcode-zen-active";
+  const PROBLEM_PAGE_CLASS = "zen-problem-page";
+  const SETTING_CLASS_MAP = {
+    questionNumbers: "zen-hide-question-numbers",
+    difficulty: "zen-hide-difficulty",
+    discussionTabs: "zen-hide-discussion-tabs",
+    hints: "zen-hide-hints",
+    tagsCompanies: "zen-hide-tags-companies",
+    stats: "zen-hide-stats",
+    likes: "zen-hide-likes",
+    similarQuestions: "zen-hide-similar-questions",
+    failingTests: "zen-hide-failing-tests",
+  };
   let zenEnabled = true;
+  let zenSettings = normalizeSettings();
   let observer = null;
   let debounceTimer = null;
+
+  function isContestPage() {
+    const path = window.location.pathname.toLowerCase();
+    return path.includes("/contest/");
+  }
+
+  function isProblemPage() {
+    const path = window.location.pathname.toLowerCase();
+    return path.includes("/problems/") || path.includes("/contest/");
+  }
+
+  function getActiveHideSettings() {
+    if (isContestPage() && zenSettings.useContestOverrides) {
+      return zenSettings.contest;
+    }
+    return zenSettings.regular;
+  }
+
+  function isZenActiveForPage() {
+    return zenEnabled && isProblemPage();
+  }
 
   /* ------------------------------------------------------------------
    *  IMMEDIATE: Add class to <html> synchronously to activate CSS
    *  before any content renders. This prevents the flash.
    *  We default to ON and will remove the class if storage says OFF.
    * ------------------------------------------------------------------ */
-  document.documentElement.classList.add("leetcode-zen-active");
+  document.documentElement.classList.add(ROOT_CLASS);
+  for (const className of Object.values(SETTING_CLASS_MAP)) {
+    document.documentElement.classList.add(className);
+  }
+
+  function normalizeSettings(settings) {
+    const source = settings || {};
+    return {
+      useContestOverrides: source.useContestOverrides === true,
+      regular: { ...BASE_HIDE_SETTINGS, ...(source.regular || {}) },
+      contest: { ...BASE_HIDE_SETTINGS, ...(source.contest || {}) },
+    };
+  }
+
+  function syncRootClasses() {
+    const pageEnabled = isZenActiveForPage();
+    const activeSettings = getActiveHideSettings();
+    document.documentElement.classList.toggle(ROOT_CLASS, pageEnabled);
+    document.documentElement.classList.toggle(PROBLEM_PAGE_CLASS, pageEnabled && isProblemPage());
+    for (const [key, className] of Object.entries(SETTING_CLASS_MAP)) {
+      document.documentElement.classList.toggle(className, pageEnabled && activeSettings[key]);
+    }
+  }
 
   /* ------------------------------------------------------------------
    *  SELECTOR-BASED HIDING (fast, belt-and-suspenders with CSS)
    * ------------------------------------------------------------------ */
 
-  const SELECTORS_TO_HIDE = [
-    // Question number / frontend ID
-    '[data-cy="question-frontend-id"]',
-    '[class*="question-id"]',
-    '.question-frontend-id',
-
-    // Difficulty
-    '[class*="text-difficulty-easy"]',
-    '[class*="text-difficulty-medium"]',
-    '[class*="text-difficulty-hard"]',
-    '[data-cy="question-difficulty"]',
-
-    // Tags
-    '[data-cy="topic-tags"]',
-    '[data-cy="company-tags"]',
-    'a[href*="/tag/"]',
-
-    // Hints
-    '[data-cy="hints-section"]',
-
-    // Tabs (solutions, discussion, editorial) — by href
-    'a[href*="/solutions"]',
-    'a[href*="/discuss"]',
-    'a[href*="/editorial"]',
-    // Tabs — by data-cy
-    '[data-cy="solutions-tab"]',
-    '[data-cy="discuss-tab"]',
-    '[data-cy="editorial-tab"]',
-
-    // Likes / dislikes / comment icons
-    '[data-icon="thumbs-up"]',
-    '[data-icon="thumbs-down"]',
-    '[data-icon="comment"]',
-    '[data-icon="share"]',
-
-    // Test case result details
-    '[data-e2e-locator="console-testcase-result"]',
-
-    // Acceptance rate on problem lists
-    '[data-cy="ac-rate"]',
-    '[data-cy="question-ac-rate"]',
-  ];
+  const SELECTORS_TO_HIDE = {
+    questionNumbers: [
+      '[data-cy="question-frontend-id"]',
+      '[class*="question-id"]',
+      ".question-frontend-id",
+    ],
+    difficulty: [
+      '[class*="text-difficulty-easy"]',
+      '[class*="text-difficulty-medium"]',
+      '[class*="text-difficulty-hard"]',
+      '[data-cy="question-difficulty"]',
+    ],
+    tagsCompanies: [
+      '[data-cy="topic-tags"]',
+      '[data-cy="company-tags"]',
+      'a[href*="/tag/"]',
+    ],
+    hints: [
+      '[data-cy="hints-section"]',
+    ],
+    discussionTabs: [
+      'a[href*="/solutions"]',
+      'a[href*="/discuss"]',
+      'a[href*="/editorial"]',
+      '[data-cy="solutions-tab"]',
+      '[data-cy="discuss-tab"]',
+      '[data-cy="editorial-tab"]',
+    ],
+    likes: [
+      '[data-icon="thumbs-up"]',
+      '[data-icon="thumbs-down"]',
+      '[data-icon="comment"]',
+      '[data-icon="share"]',
+    ],
+    failingTests: [
+      '[data-e2e-locator="console-testcase-result"]',
+    ],
+    stats: [
+      '[data-cy="ac-rate"]',
+      '[data-cy="question-ac-rate"]',
+    ],
+  };
 
   function hideBySelectors() {
-    for (const sel of SELECTORS_TO_HIDE) {
-      const els = document.querySelectorAll(sel);
-      for (const el of els) {
-        if (el.dataset.zenHidden) continue;
-        el.style.setProperty("display", "none", "important");
-        el.dataset.zenHidden = "1";
+    const activeSettings = getActiveHideSettings();
+    for (const [key, selectors] of Object.entries(SELECTORS_TO_HIDE)) {
+      if (!activeSettings[key]) continue;
+      for (const sel of selectors) {
+        const els = document.querySelectorAll(sel);
+        for (const el of els) {
+          if (el.dataset.zenHidden) continue;
+          el.style.setProperty("display", "none", "important");
+          el.dataset.zenHidden = "1";
+        }
       }
     }
   }
@@ -117,6 +195,7 @@
   ]);
 
   function hideDifficultyLabels() {
+    if (!getActiveHideSettings().difficulty) return;
     const candidates = document.querySelectorAll("span, div");
     for (const el of candidates) {
       if (el.dataset.zenHidden) continue;
@@ -140,6 +219,7 @@
   ]);
 
   function hideStats() {
+    if (!getActiveHideSettings().stats) return;
     const candidates = document.querySelectorAll("span, div, p");
     for (const el of candidates) {
       if (el.dataset.zenHidden) continue;
@@ -156,16 +236,21 @@
   }
 
   function hideSectionsByHeading() {
+    const activeSettings = getActiveHideSettings();
     const headings = document.querySelectorAll("div, h3, h4, h5, span, p");
-    const SECTIONS_TO_HIDE = new Set([
-      "similar questions", "companies", "related topics",
-      "company tags", "topic tags",
-    ]);
+    const HEADING_TO_SETTING = {
+      "similar questions": "similarQuestions",
+      "companies": "tagsCompanies",
+      "related topics": "tagsCompanies",
+      "company tags": "tagsCompanies",
+      "topic tags": "tagsCompanies",
+    };
 
     for (const el of headings) {
       if (el.dataset.zenHidden) continue;
       const text = el.textContent?.trim().toLowerCase();
-      if (!SECTIONS_TO_HIDE.has(text)) continue;
+      const settingKey = HEADING_TO_SETTING[text];
+      if (!settingKey || !activeSettings[settingKey]) continue;
       if (el.children.length > 3) continue;
 
       const container = el.closest("div[class]") || el.parentElement;
@@ -177,6 +262,7 @@
   }
 
   function hideHintButtons() {
+    if (!getActiveHideSettings().hints) return;
     const buttons = document.querySelectorAll('button, div[role="button"]');
     for (const btn of buttons) {
       if (btn.dataset.zenHidden) continue;
@@ -192,6 +278,7 @@
   }
 
   function hideLikesDislikesRow() {
+    if (!getActiveHideSettings().likes) return;
     // Strategy: find ANY element with thumbs-up icon and walk up to the
     // container row that holds the entire like/dislike/comment bar.
     const icons = document.querySelectorAll(
@@ -232,6 +319,8 @@
   }
 
   function hideTabsByText() {
+    if (!getActiveHideSettings().discussionTabs) return;
+    if (!isProblemPage()) return;
     const HIDDEN_TABS = new Set([
       "solutions", "editorial", "discussion",
       "discuss", "solution",
@@ -305,6 +394,7 @@
   }
 
   function hideFailingTestDetails() {
+    if (!getActiveHideSettings().failingTests) return;
     // The result area is: div.max-w-[700px] containing an h3 with the verdict.
     // Structure:
     //   div.max-w-[700px]
@@ -330,8 +420,7 @@
       // 2. Find the result container (max-w-[700px] ancestor)
       const resultContainer = h3.closest('div[class*="max-w-"]') ||
                               h3.closest('div[class*="mx-auto"]');
-      if (!resultContainer || resultContainer.dataset.zenTestHidden) continue;
-      resultContainer.dataset.zenTestHidden = "1";
+      if (!resultContainer) continue;
 
       // 3. Keep only the verdict branch visible.
       // LeetCode changes class names often, so we hide sibling branches
@@ -426,24 +515,69 @@
    * ------------------------------------------------------------------ */
 
   const QUESTION_NUM_RE = /^\d+\.\s+/;
+  const QUESTION_NUM_TEXT_ATTR = "zenQuestionOriginalText";
+  const QUESTION_NUM_DISPLAY_ATTR = "zenQuestionOriginalDisplay";
+  const QUESTION_NUM_HIDDEN_ATTR = "zenQuestionHidden";
+  const QUESTION_NUM_TITLE_ATTR = "zenQuestionOriginalTitle";
+  const QUESTION_NUM_TEXT_SELECTOR = "[data-zen-question-original-text]";
+  const QUESTION_NUM_HIDDEN_SELECTOR = '[data-zen-question-hidden="1"]';
+
+  function restoreQuestionNumbers() {
+    const originalTitle = document.documentElement.dataset[QUESTION_NUM_TITLE_ATTR];
+    if (originalTitle) {
+      document.title = originalTitle;
+      delete document.documentElement.dataset[QUESTION_NUM_TITLE_ATTR];
+    }
+
+    const stripped = document.querySelectorAll(QUESTION_NUM_TEXT_SELECTOR);
+    for (const el of stripped) {
+      el.textContent = el.dataset[QUESTION_NUM_TEXT_ATTR];
+      delete el.dataset[QUESTION_NUM_TEXT_ATTR];
+      delete el.dataset.zenNumStripped;
+    }
+
+    const hidden = document.querySelectorAll(QUESTION_NUM_HIDDEN_SELECTOR);
+    for (const el of hidden) {
+      const originalDisplay = el.dataset[QUESTION_NUM_DISPLAY_ATTR] || "";
+      if (originalDisplay) {
+        el.style.setProperty("display", originalDisplay);
+      } else {
+        el.style.removeProperty("display");
+      }
+      delete el.dataset[QUESTION_NUM_DISPLAY_ATTR];
+      delete el.dataset[QUESTION_NUM_HIDDEN_ATTR];
+      delete el.dataset.zenHidden;
+    }
+  }
 
   function hideQuestionNumbers() {
+    if (!getActiveHideSettings().questionNumbers) {
+      restoreQuestionNumbers();
+      return;
+    }
+
     // 1. Strip from the page <title> (browser tab)
     if (document.title && QUESTION_NUM_RE.test(document.title)) {
+      if (!document.documentElement.dataset[QUESTION_NUM_TITLE_ATTR]) {
+        document.documentElement.dataset[QUESTION_NUM_TITLE_ATTR] = document.title;
+      }
       document.title = document.title.replace(QUESTION_NUM_RE, "");
     }
 
-    // 2. Strip from visible title elements on the problem page
+    // 2. Strip from visible title elements on the problem page.
+    // Use the element's direct text node so the change is reversible.
     const titleCandidates = document.querySelectorAll(
-      'a[href*="/problems/"], span, div'
+      'a[href*="/problems/"], h1, h2, h3, h4, span, div'
     );
     for (const el of titleCandidates) {
       if (el.dataset.zenNumStripped) continue;
-      if (el.children.length > 0) continue; // only leaf text nodes
+      const firstNode = el.firstChild;
+      if (!firstNode || firstNode.nodeType !== Node.TEXT_NODE) continue;
 
-      const text = el.textContent?.trim() || "";
-      if (QUESTION_NUM_RE.test(text)) {
-        el.textContent = text.replace(QUESTION_NUM_RE, "");
+      const text = firstNode.textContent || "";
+      if (QUESTION_NUM_RE.test(text.trim())) {
+        el.dataset[QUESTION_NUM_TEXT_ATTR] = text;
+        firstNode.textContent = text.replace(QUESTION_NUM_RE, "");
         el.dataset.zenNumStripped = "1";
       }
     }
@@ -451,13 +585,15 @@
     // 3. Problem list table rows — standalone number cells
     const numberCells = document.querySelectorAll("td, span, div, a");
     for (const el of numberCells) {
-      if (el.dataset.zenHidden) continue;
+      if (el.dataset[QUESTION_NUM_HIDDEN_ATTR] === "1") continue;
       if (el.children.length > 0) continue;
       const text = el.textContent?.trim() || "";
       if (/^\d{1,5}$/.test(text)) {
         const row = el.closest('tr, div[role="row"], div[class*="odd"], div[class*="even"]');
         if (row && row.querySelector('a[href*="/problems/"]')) {
+          el.dataset[QUESTION_NUM_DISPLAY_ATTR] = el.style.display || "";
           el.style.setProperty("display", "none", "important");
+          el.dataset[QUESTION_NUM_HIDDEN_ATTR] = "1";
           el.dataset.zenHidden = "1";
         }
       }
@@ -469,7 +605,7 @@
    * ------------------------------------------------------------------ */
 
   function applyZenMode() {
-    if (!zenEnabled) return;
+    if (!isZenActiveForPage()) return;
     hideBySelectors();
     hideQuestionNumbers();
     hideDifficultyLabels();
@@ -489,7 +625,7 @@
     if (!document.body) return;
 
     const existing = document.querySelector(".zen-mode-indicator");
-    if (!zenEnabled) {
+    if (!isZenActiveForPage()) {
       if (existing) existing.remove();
       return;
     }
@@ -505,7 +641,47 @@
    *  MUTATION OBSERVER — debounced for performance
    * ------------------------------------------------------------------ */
 
-  function onMutation() {
+  function isResultMutationNode(node) {
+    if (!(node instanceof Element)) return false;
+
+    if (
+      node.matches('[data-e2e-locator="console-testcase-result"]') ||
+      node.matches('[data-e2e-locator="console-testcase-tab"]') ||
+      node.matches('[data-e2e-locator="console-testcase-list"]') ||
+      node.matches("h3")
+    ) {
+      return true;
+    }
+
+    if (
+      node.querySelector?.('[data-e2e-locator="console-testcase-result"]') ||
+      node.querySelector?.('[data-e2e-locator="console-testcase-tab"]') ||
+      node.querySelector?.('[data-e2e-locator="console-testcase-list"]') ||
+      node.querySelector?.("h3")
+    ) {
+      return true;
+    }
+
+    const text = node.textContent?.trim().toLowerCase() || "";
+    return (
+      text.includes("wrong answer") ||
+      text.includes("use testcase") ||
+      text.includes("expected") ||
+      text.includes("your input")
+    );
+  }
+
+  function onMutation(mutations) {
+    const hasResultMutation = mutations.some((mutation) => {
+      if (mutation.target && isResultMutationNode(mutation.target)) return true;
+      return Array.from(mutation.addedNodes).some(isResultMutationNode);
+    });
+
+    if (hasResultMutation && isZenActiveForPage()) {
+      hideBySelectors();
+      hideFailingTestDetails();
+    }
+
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       applyZenMode();
@@ -534,7 +710,7 @@
 
   function enableZen() {
     zenEnabled = true;
-    document.documentElement.classList.add("leetcode-zen-active");
+    syncRootClasses();
     applyZenMode();
     ensureIndicator();
     startObserver();
@@ -542,7 +718,7 @@
 
   function disableZen() {
     zenEnabled = false;
-    document.documentElement.classList.remove("leetcode-zen-active");
+    syncRootClasses();
     const badge = document.querySelector(".zen-mode-indicator");
     if (badge) badge.remove();
     if (observer) observer.disconnect();
@@ -557,6 +733,17 @@
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === "ZEN_TOGGLE") {
       msg.enabled ? enableZen() : disableZen();
+    } else if (msg.type === "ZEN_SETTINGS_UPDATE") {
+      zenEnabled = msg.enabled !== false;
+      zenSettings = normalizeSettings(msg.settings);
+      syncRootClasses();
+      if (isZenActiveForPage()) {
+        applyZenMode();
+        ensureIndicator();
+        startObserver();
+      } else {
+        disableZen();
+      }
     }
   });
 
@@ -565,13 +752,15 @@
    *  added synchronously at the top. If ON (default), start observer.
    * ------------------------------------------------------------------ */
 
-  chrome.storage.sync.get([STORAGE_KEY], (result) => {
+  chrome.storage.sync.get([STORAGE_KEY, SETTINGS_KEY], (result) => {
     zenEnabled = result[STORAGE_KEY] !== false; // default ON
-    if (zenEnabled) {
+    zenSettings = normalizeSettings(result[SETTINGS_KEY]);
+    syncRootClasses();
+    if (isZenActiveForPage()) {
       startObserver();
     } else {
       // User had it disabled — remove the class we eagerly added
-      document.documentElement.classList.remove("leetcode-zen-active");
+      document.documentElement.classList.remove(ROOT_CLASS);
     }
   });
 })();

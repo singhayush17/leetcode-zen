@@ -11,33 +11,254 @@
     <div class="popup-header">
       <div class="logo">☯</div>
       <h1>Zen Mode</h1>
-      <p class="subtitle">Distraction-free LeetCode</p>
+      <p class="subtitle">Choose what gets hidden, including contests</p>
     </div>
 
-    <div class="toggle-row">
-      <span class="toggle-label" id="statusText">Active</span>
+    <div class="toggle-row master-toggle">
+      <div>
+        <p class="toggle-title">Zen Mode</p>
+        <p class="toggle-caption" id="statusText">Active</p>
+      </div>
       <label class="switch">
         <input type="checkbox" id="zenToggle" checked />
         <span class="slider"></span>
       </label>
     </div>
 
-    <div class="divider"></div>
+    <div class="apply-notice" id="applyNotice">
+      Toggle your settings, then click <strong>Apply changes</strong> below to use them on LeetCode.
+    </div>
 
-    <ul class="feature-list">
-      <li>🚫 Question numbers hidden</li>
-      <li>🚫 Difficulty labels hidden</li>
-      <li>🚫 Discussion &amp; solutions hidden</li>
-      <li>🚫 Hints &amp; companies hidden</li>
-      <li>🚫 Stats &amp; acceptance rate hidden</li>
-      <li>🚫 Failing test case details hidden</li>
-      <li>✅ Problem description visible</li>
-      <li>✅ Code editor visible</li>
-      <li>✅ Submission history visible</li>
-    </ul>
+    <div class="section-heading">
+      <span>Practice Pages</span>
+      <button type="button" class="link-button" id="resetDefaults">Reset</button>
+    </div>
+
+    <div class="settings-list">
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Question numbers</span>
+          <span class="setting-description">Hide IDs like 1, 42, 704</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="regular" data-setting="questionNumbers" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Difficulty</span>
+          <span class="setting-description">Hide Easy, Medium, Hard</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="regular" data-setting="difficulty" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Discussion tabs</span>
+          <span class="setting-description">Hide Solutions, Editorial, Discuss</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="regular" data-setting="discussionTabs" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Hints</span>
+          <span class="setting-description">Hide hint accordions</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="regular" data-setting="hints" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Tags and companies</span>
+          <span class="setting-description">Hide topic and company tags</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="regular" data-setting="tagsCompanies" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Stats</span>
+          <span class="setting-description">Hide acceptance and submissions</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="regular" data-setting="stats" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Likes and comments</span>
+          <span class="setting-description">Hide reaction counts and actions</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="regular" data-setting="likes" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Similar questions</span>
+          <span class="setting-description">Hide related problem suggestions</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="regular" data-setting="similarQuestions" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Failed test details</span>
+          <span class="setting-description">Keep only the verdict</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="regular" data-setting="failingTests" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section-heading">
+      <span>Contests</span>
+    </div>
+
+    <div class="settings-list settings-list--compact">
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Use separate contest settings</span>
+          <span class="setting-description">Override the practice-page choices on contest and virtual contest pages</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="contestOverridesToggle" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-list" id="contestSettingsSection">
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Question numbers</span>
+          <span class="setting-description">Contest-page override</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="contest" data-setting="questionNumbers" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Difficulty</span>
+          <span class="setting-description">Contest-page override</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="contest" data-setting="difficulty" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Discussion tabs</span>
+          <span class="setting-description">Contest-page override</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="contest" data-setting="discussionTabs" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Hints</span>
+          <span class="setting-description">Contest-page override</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="contest" data-setting="hints" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Tags and companies</span>
+          <span class="setting-description">Contest-page override</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="contest" data-setting="tagsCompanies" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Stats</span>
+          <span class="setting-description">Contest-page override</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="contest" data-setting="stats" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Likes and comments</span>
+          <span class="setting-description">Contest-page override</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="contest" data-setting="likes" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Similar questions</span>
+          <span class="setting-description">Contest-page override</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="contest" data-setting="similarQuestions" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <span class="setting-name">Failed test details</span>
+          <span class="setting-description">Turn this off if you want testcase feedback in contests</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" data-scope="contest" data-setting="failingTests" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
 
     <div class="footer">
-      <p>Focus on solving, not judging.</p>
+      <p id="settingsHint">Changes stay local until you apply them.</p>
+      <div class="footer-actions">
+        <button type="button" class="secondary-button" id="cancelChanges" disabled>Cancel</button>
+        <button type="button" class="primary-button" id="applyChanges" disabled>Apply changes</button>
+      </div>
     </div>
   </div>
 

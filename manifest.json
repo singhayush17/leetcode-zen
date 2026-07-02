@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "LeetCode Zen Mode",
   "version": "1.0.0",
-  "description": "Strip away distractions. No difficulty labels, no discussion threads, no hints, no company tags — just you, the problem, and your code.",
+  "description": "Hide LeetCode distractions like difficulty, hints, and discussion so you can focus on the problem and your code.",
   "permissions": ["storage", "activeTab"],
   "icons": {
     "16": "icons/icon16.png",
