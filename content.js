@@ -4,6 +4,9 @@
  * Targets the real LeetCode DOM (Next.js SPA with Tailwind-like classes).
  * Uses MutationObserver because React re-renders on every route change.
  *
+ * FLASH PREVENTION: The class is added to <html> (not <body>) synchronously
+ * at document_start, so the injected CSS hides elements before they paint.
+ *
  * What gets hidden:
  *   - Question numbers ("1970." prefix)
  *   - Difficulty badge (Easy/Medium/Hard)
@@ -12,7 +15,7 @@
  *   - Company tags & topic tags
  *   - Stats (Accepted, Submissions, Acceptance Rate)
  *   - Similar Questions
- *   - Likes / Dislikes
+ *   - Likes / Dislikes / Comment icon
  *   - Failing test case details (Input/Output/Expected)
  *
  * What stays visible:
@@ -32,7 +35,14 @@
   let debounceTimer = null;
 
   /* ------------------------------------------------------------------
-   *  SELECTOR-BASED HIDING (fast, handled partly by CSS too)
+   *  IMMEDIATE: Add class to <html> synchronously to activate CSS
+   *  before any content renders. This prevents the flash.
+   *  We default to ON and will remove the class if storage says OFF.
+   * ------------------------------------------------------------------ */
+  document.documentElement.classList.add("leetcode-zen-active");
+
+  /* ------------------------------------------------------------------
+   *  SELECTOR-BASED HIDING (fast, belt-and-suspenders with CSS)
    * ------------------------------------------------------------------ */
 
   const SELECTORS_TO_HIDE = [
@@ -55,17 +65,20 @@
     // Hints
     '[data-cy="hints-section"]',
 
-    // Tabs (solutions, discussion, editorial)
+    // Tabs (solutions, discussion, editorial) — by href
     'a[href*="/solutions"]',
     'a[href*="/discuss"]',
     'a[href*="/editorial"]',
+    // Tabs — by data-cy
     '[data-cy="solutions-tab"]',
     '[data-cy="discuss-tab"]',
     '[data-cy="editorial-tab"]',
 
-    // Likes / dislikes
+    // Likes / dislikes / comment icons
     '[data-icon="thumbs-up"]',
     '[data-icon="thumbs-down"]',
+    '[data-icon="comment"]',
+    '[data-icon="share"]',
 
     // Test case result details
     '[data-e2e-locator="console-testcase-result"]',
@@ -153,9 +166,8 @@
       if (el.dataset.zenHidden) continue;
       const text = el.textContent?.trim().toLowerCase();
       if (!SECTIONS_TO_HIDE.has(text)) continue;
-      if (el.children.length > 3) continue; // Skip if it's a wrapper with too much content
+      if (el.children.length > 3) continue;
 
-      // Walk up to the containing section
       const container = el.closest("div[class]") || el.parentElement;
       if (container && !container.dataset.zenHidden) {
         container.style.setProperty("display", "none", "important");
@@ -180,31 +192,56 @@
   }
 
   function hideLikesDislikesRow() {
-    // Find thumbs-up/down SVGs and hide their parent button row
+    // Strategy: find ANY element with thumbs-up icon and walk up to the
+    // container row that holds the entire like/dislike/comment bar.
     const icons = document.querySelectorAll(
-      '[data-icon="thumbs-up"], [data-icon="thumbs-down"]'
+      '[data-icon="thumbs-up"], [data-icon="thumbs-down"], [data-icon="comment"], [data-icon="share"]'
     );
+    const hiddenContainers = new Set();
+
     for (const icon of icons) {
-      const row = icon.closest("div");
-      if (row && !row.dataset.zenHidden) {
-        // Walk up until we find the row containing both like & dislike
-        let target = row;
-        for (let i = 0; i < 4; i++) {
-          if (target.parentElement && target.parentElement.querySelectorAll('[data-icon]').length >= 2) {
-            target = target.parentElement;
-            break;
-          }
-          if (target.parentElement) target = target.parentElement;
+      // Walk up from the icon to find the action bar container
+      let el = icon;
+      for (let i = 0; i < 8; i++) {
+        if (!el.parentElement) break;
+        el = el.parentElement;
+
+        // We've found the row if it contains multiple action icons
+        const iconCount = el.querySelectorAll(
+          '[data-icon="thumbs-up"], [data-icon="thumbs-down"], [data-icon="comment"]'
+        ).length;
+        if (iconCount >= 2 && !hiddenContainers.has(el)) {
+          el.style.setProperty("display", "none", "important");
+          el.dataset.zenHidden = "1";
+          hiddenContainers.add(el);
+          break;
         }
-        target.style.setProperty("display", "none", "important");
-        target.dataset.zenHidden = "1";
       }
+    }
+
+    // Also hide individual like/dislike buttons and their count labels
+    // in case the icon walk-up didn't catch a specific layout
+    const likeButtons = document.querySelectorAll(
+      'button:has([data-icon="thumbs-up"]), button:has([data-icon="thumbs-down"]), button:has([data-icon="comment"])'
+    );
+    for (const btn of likeButtons) {
+      if (btn.dataset.zenHidden) continue;
+      btn.style.setProperty("display", "none", "important");
+      btn.dataset.zenHidden = "1";
     }
   }
 
   function hideTabsByText() {
-    const HIDDEN_TABS = new Set(["solutions", "discussion", "editorial"]);
-    const tabElements = document.querySelectorAll('a, div[role="tab"], button');
+    // Target both exact tab text and links that contain these words
+    const HIDDEN_TABS = new Set([
+      "solutions", "editorial", "discussion",
+      "discuss", "solution",
+    ]);
+
+    // 1. By visible text content — catches tabs rendered as divs/buttons/spans
+    const tabElements = document.querySelectorAll(
+      'a, div[role="tab"], button, span[role="tab"]'
+    );
     for (const el of tabElements) {
       if (el.dataset.zenHidden) continue;
       const text = el.textContent?.trim().toLowerCase();
@@ -213,11 +250,41 @@
         el.dataset.zenHidden = "1";
       }
     }
+
+    // 2. By href — catches links the CSS might have missed
+    const linkSelectors = [
+      'a[href*="/solutions"]',
+      'a[href*="/discuss"]',
+      'a[href*="/editorial"]',
+    ];
+    for (const sel of linkSelectors) {
+      const links = document.querySelectorAll(sel);
+      for (const link of links) {
+        if (link.dataset.zenHidden) continue;
+        link.style.setProperty("display", "none", "important");
+        link.dataset.zenHidden = "1";
+      }
+    }
+
+    // 3. Walk tab bars — if a parent contains "Description" + "Solutions" tabs,
+    //    hide the non-Description ones
+    const allAnchors = document.querySelectorAll("a, div[role='tab']");
+    for (const el of allAnchors) {
+      if (el.dataset.zenHidden) continue;
+      const text = el.textContent?.trim().toLowerCase();
+
+      // Check for numbered tabs like "Solutions (343)" or "Editorial"
+      for (const tab of HIDDEN_TABS) {
+        if (text.startsWith(tab)) {
+          el.style.setProperty("display", "none", "important");
+          el.dataset.zenHidden = "1";
+          break;
+        }
+      }
+    }
   }
 
   function hideFailingTestDetails() {
-    // After submission — hide specific Input/Output/Expected/Stdout detail blocks
-    // so user only sees "Wrong Answer — X / Y test cases passed"
     const resultArea = document.querySelector('[class*="result"], [class*="Result"]');
     if (!resultArea) return;
 
@@ -240,7 +307,6 @@
   /* ------------------------------------------------------------------
    *  QUESTION NUMBER STRIPPING
    *  Removes "1970. " prefix from titles, list items, contest pages.
-   *  Regex: /^\d+\.\s+/ matches "1970. " at the start of text.
    * ------------------------------------------------------------------ */
 
   const QUESTION_NUM_RE = /^\d+\.\s+/;
@@ -252,7 +318,6 @@
     }
 
     // 2. Strip from visible title elements on the problem page
-    //    LeetCode renders the title in <a>, <span>, <div> near the top
     const titleCandidates = document.querySelectorAll(
       'a[href*="/problems/"], span, div'
     );
@@ -267,18 +332,13 @@
       }
     }
 
-    // 3. Problem list table rows — number is often in its own cell/span
-    //    Target elements whose text is purely a number (e.g. "1970")
-    const numberCells = document.querySelectorAll(
-      'td, span, div, a'
-    );
+    // 3. Problem list table rows — standalone number cells
+    const numberCells = document.querySelectorAll("td, span, div, a");
     for (const el of numberCells) {
       if (el.dataset.zenHidden) continue;
       if (el.children.length > 0) continue;
       const text = el.textContent?.trim() || "";
-      // Pure number that could be a question ID (1–5 digits)
       if (/^\d{1,5}$/.test(text)) {
-        // Verify it's in a problem row context (has a sibling/parent linking to /problems/)
         const row = el.closest('tr, div[role="row"], div[class*="odd"], div[class*="even"]');
         if (row && row.querySelector('a[href*="/problems/"]')) {
           el.style.setProperty("display", "none", "important");
@@ -345,9 +405,6 @@
     const waitForBody = setInterval(() => {
       if (document.body) {
         clearInterval(waitForBody);
-        if (zenEnabled) {
-          document.body.classList.add("leetcode-zen-active");
-        }
         applyZenMode();
         ensureIndicator();
         observer.observe(document.body, { childList: true, subtree: true });
@@ -361,7 +418,7 @@
 
   function enableZen() {
     zenEnabled = true;
-    if (document.body) document.body.classList.add("leetcode-zen-active");
+    document.documentElement.classList.add("leetcode-zen-active");
     applyZenMode();
     ensureIndicator();
     startObserver();
@@ -369,7 +426,7 @@
 
   function disableZen() {
     zenEnabled = false;
-    if (document.body) document.body.classList.remove("leetcode-zen-active");
+    document.documentElement.classList.remove("leetcode-zen-active");
     const badge = document.querySelector(".zen-mode-indicator");
     if (badge) badge.remove();
     if (observer) observer.disconnect();
@@ -388,11 +445,17 @@
   });
 
   /* ------------------------------------------------------------------
-   *  INIT
+   *  INIT — read stored preference. If OFF, remove the class we
+   *  added synchronously at the top. If ON (default), start observer.
    * ------------------------------------------------------------------ */
 
   chrome.storage.sync.get([STORAGE_KEY], (result) => {
     zenEnabled = result[STORAGE_KEY] !== false; // default ON
-    if (zenEnabled) startObserver();
+    if (zenEnabled) {
+      startObserver();
+    } else {
+      // User had it disabled — remove the class we eagerly added
+      document.documentElement.classList.remove("leetcode-zen-active");
+    }
   });
 })();
