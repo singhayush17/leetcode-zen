@@ -232,27 +232,72 @@
   }
 
   function hideTabsByText() {
-    // Target both exact tab text and links that contain these words
     const HIDDEN_TABS = new Set([
       "solutions", "editorial", "discussion",
       "discuss", "solution",
     ]);
 
-    // 1. By visible text content — catches tabs rendered as divs/buttons/spans
-    //    LeetCode renders tabs as plain <div class="whitespace-nowrap font-medium">
+    // 1. Hide by FontAwesome icon classes used by the tab icons
+    //    Solutions = fa-flask, Editorial = fa-book-open
+    const iconSelectors = [
+      ".fa-flask",       // Solutions tab icon
+      ".fa-book-open",   // Editorial tab icon
+    ];
+    for (const sel of iconSelectors) {
+      const icons = document.querySelectorAll(sel);
+      for (const icon of icons) {
+        // Walk up to hide the entire tab (icon container + text sibling)
+        let tab = icon;
+        for (let i = 0; i < 5; i++) {
+          if (!tab.parentElement) break;
+          tab = tab.parentElement;
+          // We've reached the tab wrapper when it contains both an SVG and text
+          const hasIcon = tab.querySelector("svg");
+          const textContent = tab.textContent?.trim().toLowerCase() || "";
+          const isTab = [...HIDDEN_TABS].some(t => textContent === t || textContent.startsWith(t));
+          if (hasIcon && isTab) {
+            tab.style.setProperty("display", "none", "important");
+            tab.dataset.zenHidden = "1";
+            break;
+          }
+        }
+        // Fallback: at minimum hide the icon's container div
+        const iconContainer = icon.closest("div");
+        if (iconContainer && !iconContainer.dataset.zenHidden) {
+          iconContainer.style.setProperty("display", "none", "important");
+          iconContainer.dataset.zenHidden = "1";
+        }
+      }
+    }
+
+    // 2. By visible text content — hide text AND walk up to parent tab
     const tabElements = document.querySelectorAll(
       'a, div[role="tab"], button, span[role="tab"], div.whitespace-nowrap, div.font-medium'
     );
     for (const el of tabElements) {
       if (el.dataset.zenHidden) continue;
       const text = el.textContent?.trim().toLowerCase();
-      if (HIDDEN_TABS.has(text)) {
-        el.style.setProperty("display", "none", "important");
-        el.dataset.zenHidden = "1";
+      if (!HIDDEN_TABS.has(text)) continue;
+
+      // Hide the text element itself
+      el.style.setProperty("display", "none", "important");
+      el.dataset.zenHidden = "1";
+
+      // Walk up to hide the parent tab wrapper (contains icon + text)
+      let parent = el.parentElement;
+      for (let i = 0; i < 4; i++) {
+        if (!parent) break;
+        const hasSvg = parent.querySelector("svg");
+        if (hasSvg) {
+          parent.style.setProperty("display", "none", "important");
+          parent.dataset.zenHidden = "1";
+          break;
+        }
+        parent = parent.parentElement;
       }
     }
 
-    // 2. By href — catches links the CSS might have missed
+    // 3. By href — catches anchor-based tabs
     const linkSelectors = [
       'a[href*="/solutions"]',
       'a[href*="/discuss"]',
@@ -264,23 +309,6 @@
         if (link.dataset.zenHidden) continue;
         link.style.setProperty("display", "none", "important");
         link.dataset.zenHidden = "1";
-      }
-    }
-
-    // 3. Walk tab bars — if a parent contains "Description" + "Solutions" tabs,
-    //    hide the non-Description ones
-    const allAnchors = document.querySelectorAll("a, div[role='tab']");
-    for (const el of allAnchors) {
-      if (el.dataset.zenHidden) continue;
-      const text = el.textContent?.trim().toLowerCase();
-
-      // Check for numbered tabs like "Solutions (343)" or "Editorial"
-      for (const tab of HIDDEN_TABS) {
-        if (text.startsWith(tab)) {
-          el.style.setProperty("display", "none", "important");
-          el.dataset.zenHidden = "1";
-          break;
-        }
       }
     }
   }

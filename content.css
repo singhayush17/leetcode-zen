@@ -98,6 +98,20 @@ html.leetcode-zen-active [data-cy="editorial-tab"] {
   display: none !important;
 }
 
+/* By FontAwesome icon class (Solutions = flask, Editorial = book-open) */
+html.leetcode-zen-active .fa-flask,
+html.leetcode-zen-active .fa-book-open {
+  display: none !important;
+}
+
+/* Hide the parent container wrapping icon + tab text */
+html.leetcode-zen-active div:has(> div > .fa-flask),
+html.leetcode-zen-active div:has(> div > .fa-book-open),
+html.leetcode-zen-active div:has(> .fa-flask),
+html.leetcode-zen-active div:has(> .fa-book-open) {
+  display: none !important;
+}
+
 /* ============================================================
    7. SIMILAR QUESTIONS section
    ============================================================ */
