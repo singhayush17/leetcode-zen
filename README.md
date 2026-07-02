@@ -20,9 +20,9 @@ A Chrome extension that transforms LeetCode into a distraction-free coding envir
 | Acceptance rate & stats | 🚫 Hidden |
 | Likes / Dislikes | 🚫 Hidden |
 | Similar Questions | 🚫 Hidden |
-| Failing test case details | 🚫 Hidden* |
+| Failed testcase tabs and details | 🚫 Hidden* |
 
-\*You'll know your solution didn't pass, but you won't see *which* test cases failed — just the verdict.
+\*You'll still see the verdict, but Zen Mode hides testcase tabs like `Case 1` and details such as `Input`, `Output`, `Expected`, and `Use Testcase`.
 
 ## ✅ What Stays Visible
 
@@ -30,7 +30,7 @@ A Chrome extension that transforms LeetCode into a distraction-free coding envir
 - **Code editor** — write your solution
 - **Submission history** — track your attempts
 - **Run / Submit buttons** — test and submit your code
-- **Pass/fail verdict** — know if it worked, without spoilers
+- **Pass/fail verdict** — know if it worked, without seeing which testcase failed
 
 ---
 
@@ -69,7 +69,7 @@ When active, a small **☯ ZEN** badge appears in the bottom-left corner of the 
 - **No question number lookup** — Resist the urge to Google the solution by problem number
 - **No hint crutches** — Build your problem-solving muscles without training wheels
 - **No social pressure** — Ignore acceptance rates and other people's discussions
-- **Honest debugging** — When your code fails, figure out *why* from your logic, not from the failing test case
+- **Honest debugging** — When your code fails, work backward from the verdict instead of relying on the revealed testcase
 
 ---
 
@@ -91,8 +91,8 @@ leetcode-zen/
 
 ## 🔧 How It Works
 
-1. **CSS injection** (`content.css`) — Hides elements using attribute selectors, `:has()`, and class-name patterns, all scoped under `body.leetcode-zen-active`
-2. **MutationObserver** (`content.js`) — Because LeetCode is a React SPA, elements mount/unmount on every navigation. The observer re-applies hiding rules on every DOM change (debounced for performance)
+1. **CSS injection** (`content.css`) — Hides elements using attribute selectors, `:has()`, and class-name patterns, all scoped under `html.leetcode-zen-active`
+2. **MutationObserver** (`content.js`) — Because LeetCode is a React SPA, elements mount and unmount on every navigation. The observer re-applies hiding rules on every DOM change and strips failed testcase panels down to the verdict only
 3. **Text-based matching** — For elements CSS can't target (like stat labels or difficulty text), the script matches by `textContent`
 4. **Chrome Storage** — Toggle state persists across sessions via `chrome.storage.sync`
 

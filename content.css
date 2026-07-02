@@ -125,7 +125,8 @@ html.leetcode-zen-active div:has(> div > a[href*="/problems/"]):has([class*="tex
    so user only sees "Wrong Answer" + X/Y passed, not WHICH.
    ============================================================ */
 html.leetcode-zen-active [data-e2e-locator="console-testcase-result"],
-html.leetcode-zen-active [data-e2e-locator="console-result"] {
+html.leetcode-zen-active [data-e2e-locator="console-testcase-tab"],
+html.leetcode-zen-active [data-e2e-locator="console-testcase-list"] {
   display: none !important;
 }
 
