@@ -239,8 +239,9 @@
     ]);
 
     // 1. By visible text content — catches tabs rendered as divs/buttons/spans
+    //    LeetCode renders tabs as plain <div class="whitespace-nowrap font-medium">
     const tabElements = document.querySelectorAll(
-      'a, div[role="tab"], button, span[role="tab"]'
+      'a, div[role="tab"], button, span[role="tab"], div.whitespace-nowrap, div.font-medium'
     );
     for (const el of tabElements) {
       if (el.dataset.zenHidden) continue;
