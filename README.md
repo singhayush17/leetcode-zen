@@ -4,6 +4,8 @@
 
 A Chrome extension that transforms LeetCode into a distraction-free coding environment. No difficulty labels, no discussion threads, no hints, no company tags, no question numbers — just the problem description, your code editor, and your submission history.
 
+Chrome Web Store: [LeetCode Zen Mode](https://chromewebstore.google.com/detail/leetcode-zen-mode/ggpadgabflpndjhgkfdelkomgeoegped?authuser=0&hl=en-GB)
+
 ---
 
 ## ✨ What Gets Hidden
@@ -36,11 +38,17 @@ A Chrome extension that transforms LeetCode into a distraction-free coding envir
 
 ## 🚀 Installation
 
+### From Chrome Web Store
+
+Install directly from the Chrome Web Store:
+
+[LeetCode Zen Mode](https://chromewebstore.google.com/detail/leetcode-zen-mode/ggpadgabflpndjhgkfdelkomgeoegped?authuser=0&hl=en-GB)
+
 ### From Source (Developer Mode)
 
 1. **Clone this repo**
    ```bash
-   git clone https://github.com/whyush7/leetcode-zen.git
+   git clone https://github.com/singhayush17/leetcode-zen.git
    ```
 
 2. **Open Chrome Extensions**

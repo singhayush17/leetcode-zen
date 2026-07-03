@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LeetCode Zen Mode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Hide LeetCode distractions like difficulty, hints, and discussion so you can focus on the problem and your code.",
   "permissions": ["storage", "activeTab"],
   "icons": {

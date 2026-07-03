@@ -395,40 +395,64 @@
 
   function hideFailingTestDetails() {
     if (!getActiveHideSettings().failingTests) return;
-    // The result area is: div.max-w-[700px] containing an h3 with the verdict.
-    // Structure:
-    //   div.max-w-[700px]
-    //     └── div.flex.flex-col.gap-4
-    //         ├── div.space-y-4  (verdict h3 + buttons — KEEP)
-    //         └── div.space-y-4  (Input/Output/Expected — HIDE)
-    //         └── div.flex-col   (Code section — HIDE)
-    //         └── div.flex-col   (Notes section — HIDE)
 
-    // 1. Find verdict headers
     const VERDICTS = [
       "wrong answer", "accepted", "time limit exceeded",
       "memory limit exceeded", "runtime error", "compile error",
       "output limit exceeded",
     ];
+    const HIDDEN_LABELS = new Set([
+      "analysis",
+      "input",
+      "output",
+      "expected",
+      "stdout",
+      "code",
+      "testcase",
+      "test result",
+      "last executed input",
+      "your input",
+      "compile output",
+    ]);
 
-    const h3s = document.querySelectorAll("h3");
-    for (const h3 of h3s) {
-      const h3Text = h3.textContent?.trim().toLowerCase() || "";
-      const isVerdict = VERDICTS.some(v => h3Text.startsWith(v));
-      if (!isVerdict) continue;
+    function findResultContainer(node) {
+      if (!node) return null;
 
-      // 2. Find the result container (max-w-[700px] ancestor)
-      const resultContainer = h3.closest('div[class*="max-w-"]') ||
-                              h3.closest('div[class*="mx-auto"]');
-      if (!resultContainer) continue;
+      const consoleContainer = node.closest(
+        '[data-e2e-locator="console-result"], [data-e2e-locator="console-testcase-result"], [data-e2e-locator="console-testcase-list"]'
+      );
+      if (consoleContainer) return consoleContainer;
 
-      // 3. Keep only the verdict branch visible.
-      // LeetCode changes class names often, so we hide sibling branches
-      // around the verdict section instead of relying on one specific layout.
+      let current = node;
+      for (let i = 0; current && i < 8; i++) {
+        if (!(current instanceof Element)) break;
+        const text = current.textContent?.trim().toLowerCase() || "";
+        const hasVerdict = VERDICTS.some((verdict) => text.includes(verdict));
+        const hasCaseDetails =
+          text.includes("use testcase") ||
+          text.includes("expected") ||
+          text.includes("your input") ||
+          text.includes("analysis");
+
+        if (hasVerdict && hasCaseDetails) {
+          return current;
+        }
+
+        current = current.parentElement;
+      }
+
+      return node.closest('div[class*="max-w-"]') ||
+             node.closest('div[class*="mx-auto"]') ||
+             node.closest("section");
+    }
+
+    function scrubResultContainer(resultContainer, verdictNode) {
+      if (!resultContainer || !verdictNode) return;
+
       const verdictSection =
-        h3.closest("div.space-y-4") ||
-        h3.closest("section") ||
-        h3.parentElement;
+        verdictNode.closest("div.space-y-4") ||
+        verdictNode.closest("section") ||
+        verdictNode.parentElement;
 
       const hideSection = (section) => {
         if (!section || section === verdictSection) return;
@@ -450,24 +474,9 @@
         current = parent;
       }
 
-      // 4. Clean up testcase-specific labels/tabs that can sometimes render
-      // inside the same subtree as the verdict section.
-      const HIDDEN_LABELS = new Set([
-        "input",
-        "output",
-        "expected",
-        "stdout",
-        "code",
-        "testcase",
-        "test result",
-        "last executed input",
-        "your input",
-        "compile output",
-      ]);
-
       const labelCandidates = resultContainer.querySelectorAll("button, div, span, p");
       for (const el of labelCandidates) {
-        if (el === h3 || el.contains(h3)) continue;
+        if (el === verdictNode || el.contains(verdictNode)) continue;
         const text = el.textContent?.trim().toLowerCase() || "";
         if (!text) continue;
 
@@ -487,7 +496,6 @@
         hideSection(section);
       }
 
-      // 5. Hide the "Use Testcase" button area
       const useTestcase = resultContainer.querySelector(".testcaseAsInputClass");
       if (useTestcase) {
         const container = useTestcase.closest("div.absolute") || useTestcase.closest("div");
@@ -497,7 +505,6 @@
         }
       }
 
-      // 6. Hide the code section and notes section below the test results
       const codeLabel = resultContainer.querySelector("div.flex.items-center.justify-between");
       if (codeLabel) {
         const codeText = codeLabel.textContent?.trim().toLowerCase() || "";
@@ -506,6 +513,16 @@
           hideSection(codeSection);
         }
       }
+    }
+
+    const verdictNodes = document.querySelectorAll("h2, h3, h4, div, span, p");
+    for (const node of verdictNodes) {
+      const text = node.textContent?.trim().toLowerCase() || "";
+      const isVerdict = VERDICTS.some((verdict) => text.startsWith(verdict));
+      if (!isVerdict) continue;
+
+      const resultContainer = findResultContainer(node);
+      scrubResultContainer(resultContainer, node);
     }
   }
 
